@@ -6,6 +6,7 @@
 #----------------the code marked by these lines was coded by Proffessor Dr.Adu Baffour and given to his students to use in document "shortest_remaining_time_algorithm.ipynb" in Modeule 3----------------------------------------#
 # Process class to represent a single process
 class Process:
+  
   def __init__(self, pid, arrival_time, burst_time, priority):
     self.pid = pid # unique process id
     self.arrival_time = arrival_time # time at which the process arrives
@@ -15,6 +16,76 @@ class Process:
     self.turnaround_time = 0
     self.waiting_time = 0
     self.remaining_time = burst_time
+
+
+  def calculate_turnaround_time(self):
+    self.turnaround_time = self.completion_time - self.arrival_time
+
+  def calculate_waiting_time(self):
+    self.waiting_time = self.turnaround_time - self.burst_time
+
+
+# Implement the SJF funciton
+def shortest_job_first(processes_data):
+  
+  # Convert the input data into Process objects
+  # Sort them by Burst time since it executes the smallest burst time first 
+  processes = [Process(*p) for p in processes_data]
+  
+  total_turnaround_time = 0
+  total_waiting_time = 0
+  curr_time = 0
+  avg_turnaround_time = 0
+  avg_waiting_time = 0
+  completed_processes = 0
+  ready_queue = []
+
+  while completed_processes < len(processes):
+    for process in processes:
+       if process.arrival_time <= curr_time and process not in ready_queue and process.completion_time ==0 :
+          ready_queue.append(process)
+    if ready_queue:
+      #sort ready queue on burst time bc sjf algo
+      ready_queue.sort(key =lambda x : x.burst_time)
+      #grab first process in queue
+      curr_process = ready_queue.pop(0)
+      #calc start time 
+      start_time = max(curr_time, curr_process.arrival_time)
+      #calc completion time 
+      curr_process.completion_time = start_time + curr_process.burst_time
+      #update current time
+      curr_time = curr_process.completion_time
+      #calc turnaround time 
+      curr_process.calculate_turnaround_time()
+      curr_process.calculate_waiting_time()
+      
+      # increment the turnaround and waiting totals
+      total_turnaround_time += curr_process.turnaround_time
+      total_waiting_time += curr_process.waiting_time
+      completed_processes += 1
+    else:
+       #no processes are ready so increment time
+       curr_time += 1
+
+    
+  #calc avg turnaround and waiting times
+  avg_turnaround_time = total_turnaround_time / len(processes)
+  avg_waiting_time = total_waiting_time / len(processes)
+
+  print("Shortest Job First Algorithm: \n")
+  #print process information 
+  for process in processes:
+      print(f"Process {process.pid}: Arrival Time = {process.arrival_time}, "
+            f"Burst Time = {process.burst_time}, Completion Time = {process.completion_time}, "
+            f"Turnaround Time = {process.turnaround_time}, Waiting Time = {process.waiting_time}")
+  
+  #print turnaround and waiting time averages 
+  
+  print(f"\nAverage Turnaround Time: {avg_turnaround_time}")
+
+  print(f"Average Waiting Time: {avg_waiting_time}")
+  print("-------------------------------------")
+
 
 
 
@@ -157,10 +228,10 @@ processes = [[1, 0, 3, 1],
              [4, 6, 5, 1],
              [5, 8, 2, 1]]
 
+
 completed_processes, gantt_chart = shortest_remaining_time(processes)
 
-# print(completed_processes# )
-
+shortest_job_first(processes)
 print_results(completed_processes, gantt_chart)
 
 
