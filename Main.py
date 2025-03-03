@@ -25,6 +25,76 @@ class Process:
     self.waiting_time = self.turnaround_time - self.burst_time
 
 
+
+
+def round_robin(processes_data, time_quantum):
+    current_time = 0
+    ready_queue = []
+    completed_processes = 0
+    num_processes = len(processes_data)
+    total_turnaround_time = 0
+    total_waiting_time = 0
+    # transfer process data into the processes container
+    # Sort processes by arrival time
+    processes = [Process(*p) for p in processes_data]
+    processes.sort(key=lambda x: x.arrival_time)
+
+    while completed_processes < num_processes:
+        # Add processes that have arrived to readyqueue
+        for process in processes:
+            if process.arrival_time <= current_time and process not in ready_queue and process.remaining_time > 0:
+                ready_queue.append(process)
+
+        if ready_queue:
+            # Get next process from the ready queue 
+            process = ready_queue.pop(0)
+
+     
+            #if the remainng time is less than quantum, use remaing time
+            time_to_run = min(time_quantum, process.remaining_time)
+
+            # Update current time and process time
+            current_time += time_to_run
+            process.remaining_time -= time_to_run
+
+            # If process completes, set the completion time
+            if process.remaining_time == 0:
+                process.completion_time = current_time
+
+                completed_processes += 1
+                # increment the turnaround and waiting totals
+                process.calculate_turnaround_time()
+                process.calculate_waiting_time()
+                total_turnaround_time += process.turnaround_time
+                total_waiting_time += process.waiting_time
+                completed_processes += 1
+
+        else:
+            # If no process is ready, simply increment the time
+            current_time += 1
+
+    
+    #calc avg turnaround and waiting times
+    avg_turnaround_time = total_turnaround_time / len(processes)
+    avg_waiting_time = total_waiting_time / len(processes)
+
+    print("Round Robin Algorithm (Q=2): \n")
+    #print process information 
+    for process in processes:
+        print(f"Process {process.pid}: Arrival Time = {process.arrival_time}, "
+              f"Burst Time = {process.burst_time}, Completion Time = {process.completion_time}, "
+              f"Turnaround Time = {process.turnaround_time}, Waiting Time = {process.waiting_time}")
+    
+    #print turnaround and waiting time averages 
+    
+    print(f"\nAverage Turnaround Time: {avg_turnaround_time}")
+
+    print(f"Average Waiting Time: {avg_waiting_time}")
+    print("-------------------------------------")
+    # Return the list of processes with their computed times
+    return processes
+
+
 # Implement the SJF funciton
 def shortest_job_first(processes_data):
   
@@ -222,16 +292,24 @@ def print_results(completed_processes, gantt_chart):
 #----------------the code marked by these lines was coded by Proffessor Dr.Adu Baffour and given to his students to use, From document "shortest_remaining_time_algorithm.ipynb" in Modeule 3----------------------------------------#
 
 
-processes = [[1, 0, 3, 1],
+SJF_SRT_processes = [[1, 0, 3, 1],
              [2, 2, 6, 1],
              [3, 4, 4, 1],
              [4, 6, 5, 1],
              [5, 8, 2, 1]]
 
+RR_processes = [[1, 0, 2, 2],
+             [2, 1, 1, 1],
+             [3, 2, 8, 4],
+             [4, 3, 4, 2],
+             [5, 4, 5, 3]]
 
-completed_processes, gantt_chart = shortest_remaining_time(processes)
+time_quantum = 2
 
-shortest_job_first(processes)
+completed_processes, gantt_chart = shortest_remaining_time(SJF_SRT_processes)
+round_robin(RR_processes,time_quantum)
+shortest_job_first(SJF_SRT_processes)
+print("Shortest Remaining Time:\n")
 print_results(completed_processes, gantt_chart)
 
 
